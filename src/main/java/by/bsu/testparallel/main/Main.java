@@ -2,13 +2,15 @@ package by.bsu.testparallel.main;
 
 import by.bsu.testparallel.algorithms.InitializeMatrix;
 import by.bsu.testparallel.algorithms.MatrixMultiply;
+import by.bsu.testparallel.algorithms.MaxLineElement;
+import by.bsu.testparallel.algorithms.ScalarVectorMultiply;
 import by.bsu.testparallel.core.WorkController;
 
 import java.util.Random;
 
 public class Main {
 
-    public static final int SIZE = 1000;
+    public static final int SIZE = 500;
     public static double[] result = new double[SIZE];
 
     public static double[][] mulResult = new double[SIZE][SIZE];
@@ -16,18 +18,6 @@ public class Main {
     public static void main(String[] args) {
         Integer[][] matrix = new Integer[SIZE][SIZE];
         Integer[][] matrix2 = new Integer[SIZE][SIZE];
-
-//        double start3 = System.nanoTime();
-//        WorkController workController3 = new WorkController(1);
-//        workController3.doWorkMatrix(new MatrixMultiply(), matrix2, matrix);
-//        double finish3 = System.nanoTime();
-//        System.out.println("1 POTOKA " + (finish3 - start3));
-//        for (int i = 0; i < 3; i++) {
-//            for (int j = 0; j < 3; j++) {
-//                System.out.print(mulResult[i][j] + " ");
-//            }
-//            System.out.println();
-//        }
 
         Random rand = new Random();
 
@@ -39,7 +29,7 @@ public class Main {
             }
         }
         double finishInit = System.nanoTime();
-        System.out.println("1 POTOK " + (finishInit - startInit));
+        System.out.println("POSLEDOV " + (finishInit - startInit));
 
 
         double start4Init = System.nanoTime();
@@ -48,8 +38,10 @@ public class Main {
         double finish4Init = System.nanoTime();
         System.out.println("2 POTOKA " + (finish4Init - start4Init));
 
+        System.out.println("Starting benchmark...");
+        System.out.println();
 
-        System.out.println("Multiplication");
+        System.out.println("-=-=-Multiplication-=-=-");
         double start4 = System.nanoTime();
         for (int i = 0; i < mulResult.length; i++) { // aRow
             for (int j = 0; j < mulResult.length; j++) { // bColumn
@@ -59,14 +51,12 @@ public class Main {
             }
         }
         double finish4 = System.nanoTime();
-        System.out.println("1 POTOK " + (finish4 - start4));
-
+        System.out.println("POSLEDOV " + (finish4 - start4));
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 mulResult[i][j] = 0;
             }
         }
-        System.out.println("Multiplication");
         double start4Mult = System.nanoTime();
         WorkController workControllerMult = new WorkController(2);
         workControllerMult.doWorkMatrix(new MatrixMultiply(), matrix, matrix2);
@@ -78,7 +68,6 @@ public class Main {
             }
         }
 
-        System.out.println("Multiplication");
         double start4Mult3 = System.nanoTime();
         WorkController workControllerMult3 = new WorkController(3);
         workControllerMult3.doWorkMatrix(new MatrixMultiply(), matrix, matrix2);
@@ -90,105 +79,100 @@ public class Main {
             }
         }
 
-        System.out.println("Multiplication");
         double start4Mult2 = System.nanoTime();
         WorkController workControllerMult2 = new WorkController(4);
         workControllerMult2.doWorkMatrix(new MatrixMultiply(), matrix, matrix2);
         double finish4Mult2 = System.nanoTime();
         System.out.println("4 POTOKA " + (finish4Mult2 - start4Mult2));
 
+        ///////////////////////////////////////////////////////////////////
+        System.out.println();
+        System.out.println("-=-=-Max Line Element-=-=-");
+        double start2 = System.nanoTime();
+        double max;
+        for (int i = 0; i < SIZE; i++) {
+            max = Double.MIN_VALUE;
+            for (int j = 0; j < SIZE; j++) {
+                if (max < matrix[i][j]) {
+                    max = matrix[i][j];
+                }
+            }
+            result[i] = max;
+        }
+        double finish2 = System.nanoTime();
+        System.out.println("POSLEDOV " + (finish2 - start2));
+
+        double start = System.nanoTime();
+        WorkController workController = new WorkController(2);
+        workController.doWorkVector(new MaxLineElement(), matrix);
+        double finish = System.nanoTime();
+        System.out.println("2 POTOKA " + (finish - start));
+        for (int i = 0; i < result.length; i++) {
+            result[i] = 0;
+        }
+
+        double start3 = System.nanoTime();
+        WorkController workController3 = new WorkController(3);
+        workController3.doWorkVector(new MaxLineElement(), matrix);
+        double finish3 = System.nanoTime();
+        System.out.println("3 POTOKA " + (finish3 - start3));
+        for (int i = 0; i < result.length; i++) {
+            result[i] = 0;
+        }
+
+        double start45 = System.nanoTime();
+        WorkController workController4 = new WorkController(3);
+        workController4.doWorkVector(new MaxLineElement(), matrix);
+        double finish45 = System.nanoTime();
+        System.out.println("4 POTOKA " + (finish45 - start45));
+        for (int i = 0; i < result.length; i++) {
+            result[i] = 0;
+        }
+
+        ///////////////////////////////////////////////////////////
+        System.out.println();
+        System.out.println("-=-=-Scalar Vector Multiply-=-=-");
+        double startOdno = System.nanoTime();
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                result[i] += matrix[i][j] * matrix2[i][j];
+            }
+        }
+        double finishOdno = System.nanoTime();
+        System.out.println("POSLEDOV " + (finishOdno - startOdno));
+
+        double startZero = System.nanoTime();
+        WorkController workControllerz = new WorkController(2);
+        ScalarVectorMultiply scalarVectorMultiply = new ScalarVectorMultiply();
+        workControllerz.doWorkMatrix(scalarVectorMultiply, matrix, matrix2);
+        double finishZero = System.nanoTime();
+        System.out.println("2 POTOKA " + (finishZero - startZero));
+        for (int i = 0; i < result.length; i++) {
+            result[i] = 0;
+        }
+
+        double startOne = System.nanoTime();
+        WorkController workControllerOne = new WorkController(3);
+        workControllerOne.doWorkMatrix(scalarVectorMultiply, matrix, matrix2);
+        double finishOne = System.nanoTime();
+        System.out.println("3 POTOKA " + (finishOne - startOne));
+        for (int i = 0; i < result.length; i++) {
+            result[i] = 0;
+        }
+
+        double startTwo = System.nanoTime();
+        WorkController workControllerTwo = new WorkController(4);
+        workControllerTwo.doWorkMatrix(scalarVectorMultiply, matrix, matrix2);
+        double finishTwo = System.nanoTime();
+        System.out.println("4 POTOKA " + (finishTwo - startTwo));
+
+        System.out.println();
+        System.out.println("=======================");
+        for (int i = 0; i < 5; i++) {
+            System.out.println(i + " " + result[i]);
+        }
         System.out.println("lenght: " + mulResult.length);
         System.out.println(mulResult[5][10]);
-
-
-//
-//        ///////////////////////////////////////////////////////////////////
-//        System.out.println("Starting benchmark...");
-//        System.out.println();
-//        System.out.println("-=-=-Max Line Element-=-=-");
-//        double start2 = System.nanoTime();
-//        double max;
-//        for (int i = 0; i < SIZE; i++) {
-//            max = Double.MIN_VALUE;
-//            for (int j = 0; j < SIZE; j++) {
-//                if (max < matrix[i][j]) {
-//                    max = matrix[i][j];
-//                }
-//            }
-//            result[i] = max;
-//        }
-//        double finish2 = System.nanoTime();
-//        System.out.println("1 POTOK " + (finish2 - start2));
-//
-//        double start = System.nanoTime();
-//        WorkController workController = new WorkController(2);
-//        workController.doWorkVector(new MaxLineElement(), matrix);
-//        double finish = System.nanoTime();
-//        System.out.println("2 POTOKA " + (finish - start));
-//        for (int i = 0; i < result.length; i++) {
-//            result[i] = 0;
-//        }
-//
-//        double start3 = System.nanoTime();
-//        WorkController workController3 = new WorkController(3);
-//        workController3.doWorkVector(new MaxLineElement(), matrix);
-//        double finish3 = System.nanoTime();
-//        System.out.println("3 POTOKA " + (finish3 - start3));
-//        for (int i = 0; i < result.length; i++) {
-//            result[i] = 0;
-//        }
-//
-//        double start4 = System.nanoTime();
-//        WorkController workController4 = new WorkController(3);
-//        workController4.doWorkVector(new MaxLineElement(), matrix);
-//        double finish4 = System.nanoTime();
-//        System.out.println("4 POTOKA " + (finish4 - start4));
-//        for (int i = 0; i < result.length; i++) {
-//            result[i] = 0;
-//        }
-//
-//        ///////////////////////////////////////////////////////////
-//        System.out.println();
-//        System.out.println("-=-=-Scalar Vector Multiply-=-=-");
-//        double startOdno = System.nanoTime();
-//        for (int i = 0; i < SIZE; i++) {
-//            for (int j = 0; j < SIZE; j++) {
-//                result[i] += matrix[i][j] * matrix2[i][j];
-//            }
-//        }
-//        double finishOdno = System.nanoTime();
-//        System.out.println("1 POTOK " + (finishOdno - startOdno));
-//
-//        double startZero = System.nanoTime();
-//        WorkController workControllerz = new WorkController(2);
-//        ScalarVectorMultiply scalarVectorMultiply = new ScalarVectorMultiply();
-//        workControllerz.doWorkMatrix(scalarVectorMultiply, matrix, matrix2);
-//        double finishZero = System.nanoTime();
-//        System.out.println("2 POTOKA " + (finishZero - startZero));
-//        for (int i = 0; i < result.length; i++) {
-//            result[i] = 0;
-//        }
-//
-//        double startOne = System.nanoTime();
-//        WorkController workControllerOne = new WorkController(3);
-//        workControllerOne.doWorkMatrix(scalarVectorMultiply, matrix, matrix2);
-//        double finishOne = System.nanoTime();
-//        System.out.println("3 POTOKA " + (finishOne - startOne));
-//        for (int i = 0; i < result.length; i++) {
-//            result[i] = 0;
-//        }
-//
-//        double startTwo = System.nanoTime();
-//        WorkController workControllerTwo = new WorkController(4);
-//        workControllerTwo.doWorkMatrix(scalarVectorMultiply, matrix, matrix2);
-//        double finishTwo = System.nanoTime();
-//        System.out.println("4 POTOKA " + (finishTwo - startTwo));
-//
-//        System.out.println();
-//        System.out.println("=======================");
-//        for (int i = 0; i < 5; i++) {
-//            System.out.println(i + " " + result[i]);
-//        }
 
     }
 }
