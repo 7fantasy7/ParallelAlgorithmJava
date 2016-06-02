@@ -119,6 +119,7 @@ public class Main {
         }
 
         System.out.println();
+        System.out.println("=====================");
         System.out.println("Matrix size: " + SIZE);
         System.out.println("=====================");
         System.out.println();
