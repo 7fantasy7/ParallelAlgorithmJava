@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class Main {
 
-    public static final int SIZE = 500;             //размерность матрицы
+    public static final int SIZE = 1000;             //размерность матрицы
     public static final int TEST_NUMBER = 10;       //количество тестов
     public static final int THREAD_NUMBER = 4;      //количество потоков
 
