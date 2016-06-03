@@ -26,7 +26,7 @@ public class InitializeMatrix<T extends Number> implements Runnable {
     public void run() {
         Random rand = new Random();
         for (int j = 0; j < matrix.length; j++) {
-            matrix[rowNumber][j] = (T) new Integer(rand.nextInt());
+            matrix[rowNumber][j] = (T) Integer.valueOf(rand.nextInt());
         }
     }
 }

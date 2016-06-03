@@ -10,20 +10,19 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Main {
-
-    public static final int SIZE = 500;             //размерность матрицы
-    public static final int TEST_NUMBER = 10;       //количество тестов
+    public static final int SIZE = 1000;             //размерность матрицы
+    public static final int TEST_NUMBER = 1;       //количество тестов
     public static final int THREAD_NUMBER = 4;      //количество потоков
 
     public static double[] result = new double[SIZE];
     public static double[][] mulResult = new double[SIZE][SIZE];
 
-    public static long[] timeInit = new long[THREAD_NUMBER];
-    public static long[] timeMatrixMultiply = new long[THREAD_NUMBER];
-    public static long[] timeMaxLineElement = new long[THREAD_NUMBER];
-    public static long[] timeScalarVectorMultiply = new long[THREAD_NUMBER];
-    public static long timeStart;                   //время начала
-    public static long timeEnd;                     //время конца
+    private static long[] timeInit = new long[THREAD_NUMBER];
+    private static long[] timeMatrixMultiply = new long[THREAD_NUMBER];
+    private static long[] timeMaxLineElement = new long[THREAD_NUMBER];
+    private static long[] timeScalarVectorMultiply = new long[THREAD_NUMBER];
+    private static long timeStart;                   //время начала
+    private static long timeEnd;                     //время конца
 
     public static void main(String[] args) {
         Integer[][] firstMatrix = new Integer[SIZE][SIZE];   //Входные данные могут быть любого типа, поддерживаемого классим Number
@@ -51,8 +50,9 @@ public class Main {
                     secondMatrix[i][j] = rand.nextInt();
                 }
             }
+            System.err.println("Matrix initialized...");
 
-            //Умножение матриц
+//            //Умножение матриц
             timeStart = System.nanoTime();
             for (int i = 0; i < mulResult.length; i++) { // aRow
                 for (int j = 0; j < mulResult.length; j++) { // bColumn
@@ -63,6 +63,8 @@ public class Main {
             }
             timeEnd = System.nanoTime();
             timeMatrixMultiply[0] += timeEnd - timeStart;
+            System.err.println("Matrix multiplication completed...");
+
 
             //Нахождение максимального элемента для каждой строки матрицы
             timeStart = System.nanoTime();
@@ -78,8 +80,10 @@ public class Main {
             }
             timeEnd = System.nanoTime();
             timeMaxLineElement[0] += timeEnd - timeStart;
+            System.err.println("Matrix max element in line found...");
 
-            //Скалярное умножение векторов
+
+//            //Скалярное умножение векторов
             Arrays.fill(result, 0.0);
             timeStart = System.nanoTime();
             for (int i = 0; i < SIZE; i++) {
@@ -89,6 +93,8 @@ public class Main {
             }
             timeEnd = System.nanoTime();
             timeScalarVectorMultiply[0] += timeEnd - timeStart;
+            System.err.println("Vectors is being multiplicated...");
+
 
             ////////////////////////////////////////////////////////////////////////////////////
             //Многопоточная реализация алгоритмов
@@ -98,37 +104,44 @@ public class Main {
 
                 //Инициализация матрицы случайными значениями
                 timeStart = System.nanoTime();
-                WorkController workControllerInit = new WorkController(i);
+                WorkController<Integer> workControllerInit = new WorkController<>(i);
                 workControllerInit.doWorkMatrix(new InitializeMatrix(), secondMatrix);
                 timeEnd = System.nanoTime();
                 timeInit[i - 1] += timeEnd - timeStart;
+                System.err.println("Matrix initialisation completed with " + i + " threads");
+
 
                 //Умножение матриц
-                for (double[] row : mulResult)
+                for (double[] row : mulResult) {
                     Arrays.fill(row, 0.0);
+                }
                 timeStart = System.nanoTime();
-                WorkController workControllerMatrixMultiply = new WorkController(i);
+                WorkController<Integer> workControllerMatrixMultiply = new WorkController<>(i);
                 workControllerMatrixMultiply.doWorkMatrix(new MatrixMultiply(), firstMatrix, secondMatrix);
                 timeEnd = System.nanoTime();
                 timeMatrixMultiply[i - 1] += timeEnd - timeStart;
+                System.err.println("Matrix multiplication completed with " + i + " threads");
+
 
                 //Нахождение максимального элемента для каждой строки матрицы
                 Arrays.fill(result, 0.0);
                 timeStart = System.nanoTime();
-                WorkController workControllerMaxLineElement = new WorkController(i);
+                WorkController<Integer> workControllerMaxLineElement = new WorkController<>(i);
                 workControllerMaxLineElement.doWorkVector(new MaxLineElement(), firstMatrix);
                 timeEnd = System.nanoTime();
                 timeMaxLineElement[i - 1] += timeEnd - timeStart;
+                System.err.println("Matrix line max element completed with " + i + " threads");
 
                 //Скалярное умножение векторов
                 Arrays.fill(result, 0.0);
                 timeStart = System.nanoTime();
-                WorkController workControllerScalarVectorMultiply = new WorkController(i);
+                WorkController<Integer> workControllerScalarVectorMultiply = new WorkController<>(i);
                 workControllerScalarVectorMultiply.doWorkMatrix(new ScalarVectorMultiply(), firstMatrix, secondMatrix);
                 timeEnd = System.nanoTime();
                 timeScalarVectorMultiply[i - 1] += timeEnd - timeStart;
-            }
+                System.err.println("Vectors are being scalar multiplicated with " + i + " threads");
 
+            }
             System.err.println("Passed " + (q + 1) + " test...");
         }
 
@@ -156,5 +169,8 @@ public class Main {
         for (int i = 0; i < THREAD_NUMBER; i++) {
             System.out.println((i + 1) + " Threaded: " + (timeScalarVectorMultiply[i] / TEST_NUMBER));
         }
+        System.out.println();
+        System.out.println(result);
+        System.out.println(mulResult);
     }
 }

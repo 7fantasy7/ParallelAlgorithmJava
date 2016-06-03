@@ -17,19 +17,20 @@ public class WorkController<T extends Number> {
         this.service = Executors.newFixedThreadPool(threadCount);
     }
 
-    public void doWorkMatrix(Runnable runnable, T[][]... matrixes) {
+    @SafeVarargs
+    public final void doWorkMatrix(Runnable runnable, T[][]... matrixes) {
         try {
-            if (runnable instanceof ScalarVectorMultiply) {
+            if (runnable.getClass() == ScalarVectorMultiply.class) {
                 for (int i = 0; i < matrixes[0].length; i++) {
-                    service.execute(new ScalarVectorMultiply(matrixes[0][i], matrixes[1][i], i));
+                    service.execute(new ScalarVectorMultiply<>(matrixes[0][i], matrixes[1][i], i));
                 }
-            } else if (runnable instanceof InitializeMatrix) {
+            } else if (runnable.getClass() == InitializeMatrix.class) {
                 for (int i = 0; i < matrixes[0].length; i++) {
-                    service.execute(new InitializeMatrix(matrixes[0], i));
+                    service.execute(new InitializeMatrix<>(matrixes[0], i));
                 }
-            } else if (runnable instanceof MatrixMultiply) {
+            } else if (runnable.getClass() == MatrixMultiply.class) {
                 for (int i = 0; i < matrixes[0].length; i++) {
-                    service.execute(new MatrixMultiply(matrixes[0], matrixes[1], i));
+                    service.execute(new MatrixMultiply<>(matrixes[0], matrixes[1], i));
                 }
             }
         } catch (RejectedExecutionException e) {
@@ -37,18 +38,19 @@ public class WorkController<T extends Number> {
 
         service.shutdown();
         try {
-            while (!service.awaitTermination(24L, TimeUnit.HOURS)) {
+            while (!service.awaitTermination(2L, TimeUnit.SECONDS)) {
                 System.out.println("Not yet. Still waiting for termination");
             }
         } catch (InterruptedException e) {
         }
     }
 
-    public void doWorkVector(Runnable runnable, T[]... matrixes) {
+    @SafeVarargs
+    public final void doWorkVector(Runnable runnable, T[]... matrixes) {
         try {
-            if (runnable instanceof MaxLineElement) {
+            if (runnable.getClass() == MaxLineElement.class) {
                 for (int i = 0; i < matrixes[0].length; i++) {
-                    service.execute(new MaxLineElement(matrixes[i], i));
+                    service.execute(new MaxLineElement<>(matrixes[i], i));
                 }
             }
         } catch (RejectedExecutionException e) {
@@ -56,7 +58,7 @@ public class WorkController<T extends Number> {
 
         service.shutdown();
         try {
-            while (!service.awaitTermination(24L, TimeUnit.HOURS)) {
+            while (!service.awaitTermination(2L, TimeUnit.SECONDS)) {
                 System.out.println("Not yet. Still waiting for termination");
             }
         } catch (InterruptedException e) {
